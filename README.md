@@ -62,11 +62,4 @@ Lets hold it simple, there is much more but these tools are what I use daily:
 ###
 
 
-<div>
-<img
-  src="Coding_GIF.gif"
-  alt="GitHub Banner"
-  width="100%"
-  style="aspect-ratio: 16 / 9; object-fit: cover;"
-/>
-</div>
+
