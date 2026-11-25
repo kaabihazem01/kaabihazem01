@@ -1,4 +1,4 @@
-# Hello World!, I'm Hazem, a Next.js dev from Tunisia
+# Hello World!, I'm Hazem, a Full Stack Developer from Tunisia
 
 
 ### 💻 Tech Stack:
