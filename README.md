@@ -10,7 +10,7 @@ Lets hold it simple, there is much more but these tools are what I use daily:
 - Styling: TailwindCSS & Shadcn
 
 <div>
-<img srcm"Kaabi_Hazem_neon.png" alt="GitHub Banner" width="100%" />
+<img src="Kaabi_Hazem_neon.png" alt="GitHub Banner" width="100%" />
 </div>
 
 <div data-importer="border">
