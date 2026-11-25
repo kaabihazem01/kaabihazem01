@@ -8,8 +8,10 @@ Lets hold it simple, there is much more but these tools are what I use daily:
 - Lang: Ts
 - Framework: Next.js
 - Styling: TailwindCSS & Shadcn
-<img srcm"Kaabi_Hazem_neon.png" alt="GitHub Banner" width="100%" />
 
+<div>
+<img srcm"Kaabi_Hazem_neon.png" alt="GitHub Banner" width="100%" />
+</div>
 
 <div data-importer="border">
   <img style="100%" src="https://capsule-render.vercel.app/api?type=waving&height=100&section=header&reversal=false&fontSize=70&fontColor=FFFFFF&fontAlign=50&fontAlignY=50&stroke=-&descSize=20&descAlign=50&descAlignY=50&theme=cobalt"  />
