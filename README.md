@@ -60,3 +60,8 @@ Lets hold it simple, there is much more but these tools are what I use daily:
 </picture>
 
 ###
+
+
+<div>
+<img src="Coding_GIF.gif" alt="GitHub Banner" width="100%" />
+</div>
