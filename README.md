@@ -14,8 +14,3 @@
   <img src="cards/graph.svg" alt="Contribution graph, 24 contributions in the last year" width="100%">
 </p>
 <!--CARDS:END-->
-<picture>
-<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kaabihazem01/kaabihazem01/output/github-snake-dark.svg" />
-<source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kaabihazem01/kaabihazem01/output/github-snake.svg" />
-<img alt="github-snake" src="https://raw.githubusercontent.com/kaabihazem01/kaabihazem01/output/github-snake.svg" />
-</picture>
