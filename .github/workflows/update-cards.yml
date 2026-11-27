@@ -1,0 +1,54 @@
+name: Update profile cards
+
+# Refreshes data/contributions.json daily, re-renders the SVG cards and commits them.
+# Already have a scheduled workflow? Copy the last three steps into it.
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/build_cards.py"
+      - "fonts/**"
+      - "assets/**"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-cards
+  cancel-in-progress: true
+
+jobs:
+  cards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install fonttools (provides pyftsubset)
+        run: python -m pip install fonttools
+
+      - name: Refresh contribution data
+        env:
+          # Add a PAT with read:user as the PROFILE_TOKEN secret to count private contributions.
+          GH_TOKEN: ${{ secrets.PROFILE_TOKEN || secrets.GITHUB_TOKEN }}
+        run: python scripts/fetch_contributions.py "${{ github.repository_owner }}"
+
+      - name: Render cards
+        run: python scripts/build_cards.py
+
+      - name: Commit cards
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/contributions.json cards README.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: refresh profile cards"
+            git push
+          fi

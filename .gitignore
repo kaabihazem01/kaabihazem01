@@ -1,0 +1,4 @@
+cards-static/
+__pycache__/
+*.pyc
+_live.html
