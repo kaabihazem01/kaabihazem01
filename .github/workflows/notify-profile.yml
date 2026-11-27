@@ -1,0 +1,28 @@
+name: Notify profile repository
+
+on:
+  workflow_call:
+    secrets:
+      PROFILE_UPDATE_TOKEN:
+        description: Fine-grained PAT with Contents: write access to kaabihazem01/kaabihazem01
+        required: true
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger profile contribution refresh
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PROFILE_UPDATE_TOKEN }}
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: "kaabihazem01",
+              repo: "kaabihazem01",
+              event_type: "contribution-update",
+              client_payload: {
+                source_repository: `${context.repo.owner}/${context.repo.repo}`,
+                source_ref: context.ref,
+                source_sha: context.sha
+              }
+            });
