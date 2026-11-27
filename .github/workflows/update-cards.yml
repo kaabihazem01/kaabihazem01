@@ -4,7 +4,7 @@ name: Update profile cards
 # Already have a scheduled workflow? Copy the last three steps into it.
 on:
   schedule:
-    - cron: "17 3 * * *"
+    - cron: "39 12 * * *"
   workflow_dispatch:
   push:
     paths:
