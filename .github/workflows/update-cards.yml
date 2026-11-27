@@ -1,23 +1,25 @@
 name: Update profile cards
 
-# Refreshes data/contributions.json daily, re-renders the SVG cards and commits them.
-# Already have a scheduled workflow? Copy the last three steps into it.
+# Refresh contribution data hourly and after profile-source changes.
+# GitHub can take time to index contributions, so the hourly run is a backstop.
 on:
   schedule:
-    - cron: "39 12 * * *"
+    - cron: "17 * * * *"
   workflow_dispatch:
   push:
-    paths:
-      - "scripts/build_cards.py"
-      - "fonts/**"
-      - "assets/**"
+    # Generated outputs are committed by this workflow. Ignoring them prevents
+    # a self-trigger loop while allowing ordinary profile/source pushes through.
+    paths-ignore:
+      - "cards/**"
+      - "data/contributions.json"
+      - "README.md"
 
 permissions:
   contents: write
 
 concurrency:
   group: update-cards
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   cards:
@@ -34,21 +36,22 @@ jobs:
 
       - name: Refresh contribution data
         env:
-          # Add a PAT with read:user as the PROFILE_TOKEN secret to count private contributions.
+          # Add a classic PAT with read:user as PROFILE_TOKEN to include private contributions.
           GH_TOKEN: ${{ secrets.PROFILE_TOKEN || secrets.GITHUB_TOKEN }}
         run: python scripts/fetch_contributions.py "${{ github.repository_owner }}"
 
       - name: Render cards
         run: python scripts/build_cards.py
 
-      - name: Commit cards
+      - name: Commit generated contribution outputs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/contributions.json cards README.md
+          # Keep the Hero and Title 1–3 SVG files byte-for-byte unchanged.
+          git add data/contributions.json cards/stats.svg cards/graph.svg README.md
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "chore: refresh profile cards"
+            git commit -m "chore: refresh contribution cards"
             git push
           fi
