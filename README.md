@@ -14,3 +14,6 @@
   <img src="cards/graph.svg" alt="Contribution graph, 37 contributions in the last year" width="100%">
 </p>
 <!--CARDS:END-->
+<p align="center">
+  <img src="cards/graph.svg" alt="Contribution graph, 37 contributions in the last year" width="100%">
+</p>
