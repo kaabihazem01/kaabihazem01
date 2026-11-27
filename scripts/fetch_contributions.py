@@ -9,8 +9,8 @@ include private ones, add a classic PAT with `read:user` as the repo secret
 PROFILE_TOKEN (the workflow prefers it automatically).
 
 Output shape (what scripts/build_cards.py reads):
-  {"login", "name", "bio", "days": [{"date": "YYYY-MM-DD", "count": n}, ...],
-   "repos": [{"name", "description", "url", "language", "languageColor", "stars", "forks", "fork_of"}, ...]}
+  {"login", "name", "days": [{"date": "YYYY-MM-DD", "count": n}, ...],
+   "repos": [{"name", "description", "url", "language", "languageColor", "stars", "forks"}, ...]}
 """
 from __future__ import annotations
 
@@ -29,38 +29,17 @@ QUERY = """
 query($login: String!, $from: DateTime!, $to: DateTime!) {
   user(login: $login) {
     name
-    bio
     contributionsCollection(from: $from, to: $to) {
       contributionCalendar { weeks { contributionDays { date contributionCount } } }
     }
     pinnedItems(first: 6, types: REPOSITORY) {
-      nodes { ... on Repository { ...Repo } }
-    }
-    repositories(first: 30, ownerAffiliations: OWNER, privacy: PUBLIC, orderBy: {field: STARGAZERS, direction: DESC}) {
-      nodes { ...Repo }
+      nodes { ... on Repository {
+        name description url stargazerCount forkCount primaryLanguage { name color }
+      } }
     }
   }
 }
-fragment Repo on Repository {
-  name description url stargazerCount forkCount isFork isArchived pushedAt
-  parent { nameWithOwner }
-  primaryLanguage { name color }
-}
 """
-
-
-def _repo(n: dict) -> dict:
-    lang = n.get("primaryLanguage") or {}
-    return {
-        "name": n["name"],
-        "description": n.get("description") or "",
-        "url": n["url"],
-        "language": lang.get("name"),
-        "languageColor": lang.get("color"),
-        "stars": n.get("stargazerCount", 0),
-        "forks": n.get("forkCount", 0),
-        "fork_of": (n.get("parent") or {}).get("nameWithOwner") if n.get("isFork") else None,
-    }
 
 
 def transform(resp: dict, login: str, first_day: dt.date, last_day: dt.date) -> dict:
@@ -73,18 +52,25 @@ def transform(resp: dict, login: str, first_day: dt.date, last_day: dt.date) -> 
             date = dt.date.fromisoformat(d["date"])
             if first_day <= date <= last_day:
                 days[d["date"]] = d["contributionCount"]
-    # Pinned repos win. With nothing pinned, fall back to your most-starred, most
-    # recently pushed public repos (never the profile repo itself or archived ones).
-    repos = [_repo(n) for n in user["pinnedItems"]["nodes"] if n]
-    if not repos:
-        pool = [n for n in user["repositories"]["nodes"] if n and n["name"].lower() != login.lower() and not n.get("isArchived")]
-        pool.sort(key=lambda n: n.get("pushedAt") or "", reverse=True)
-        pool.sort(key=lambda n: n.get("stargazerCount", 0), reverse=True)  # stable: stars first, then recency
-        repos = [_repo(n) for n in pool[:6]]
+    repos = []
+    for n in user["pinnedItems"]["nodes"]:
+        if not n:
+            continue
+        lang = n.get("primaryLanguage") or {}
+        repos.append(
+            {
+                "name": n["name"],
+                "description": n.get("description") or "",
+                "url": n["url"],
+                "language": lang.get("name"),
+                "languageColor": lang.get("color"),
+                "stars": n.get("stargazerCount", 0),
+                "forks": n.get("forkCount", 0),
+            }
+        )
     return {
         "login": login,
         "name": user.get("name") or login,
-        "bio": (user.get("bio") or "").strip(),
         "days": [{"date": k, "count": v} for k, v in sorted(days.items())],
         "repos": repos,
     }

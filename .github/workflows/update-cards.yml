@@ -1,20 +1,23 @@
 name: Update profile cards
 
-# Re-reads your GitHub activity, re-renders the SVG cards and commits them only
-# when something actually changed. Already have a scheduled workflow? Copy the
-# last four steps into it.
+# Refreshes data/contributions.json daily, re-renders the SVG cards and commits them.
+# Already have a scheduled workflow? Copy the last three steps into it.
 on:
   schedule:
-    - cron: "7 * * * *" # hourly
-  workflow_dispatch: # the "Run workflow" button for an instant refresh
-  push: # any push to this repo (new script, avatar, fonts...) refreshes too
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/build_cards.py"
+      - "fonts/**"
+      - "assets/**"
 
 permissions:
   contents: write
 
 concurrency:
   group: update-cards
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   cards:
@@ -47,6 +50,5 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "chore: refresh profile cards"
-            git pull --rebase --autostash
             git push
           fi

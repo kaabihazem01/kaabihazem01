@@ -41,9 +41,6 @@ ROOT = Path(__file__).resolve().parent.parent
 NAME = "Hazem Kaabi"
 EYEBROW = "HELLO WORLD!"
 ROLE_LINE = "Full Stack Developer from Tunisia."
-# If your GitHub profile has a bio, the hero shows it instead (so editing your
-# bio on GitHub updates the hero). ROLE_LINE is the fallback when the bio is empty.
-USE_GITHUB_BIO = True
 
 # Three linked tiles: (small label, big text, link, accent colour or None for brand)
 TILES = [
@@ -85,7 +82,6 @@ FONT_FALLBACK = {"display": "system-ui,sans-serif", "body": "system-ui,sans-seri
 # plays top to bottom. Tiles and repos add a small per-item stagger on top.
 T_HERO, T_TILES, T_STATS, T_REPOS, T_GRAPH = 0.0, 0.5, 1.1, 1.8, 2.6
 
-SAMPLE = False  # set from data/contributions.json; shows a "SAMPLE DATA" badge until the Action writes real data
 STATIC = os.environ.get("STATIC", "").strip().lower() in ("1", "true", "yes")
 OUT_DIR = ROOT / ("cards-static" if STATIC else "cards")
 DATA_FILE = ROOT / "data" / "contributions.json"
@@ -275,19 +271,6 @@ class Card:
         )
 
 
-def sample_pill(c: Card, x: float, y: float) -> None:
-    """Badge that makes unrefreshed placeholder data impossible to mistake for real numbers."""
-    if not SAMPLE:
-        return
-    label = "SAMPLE DATA"
-    w = FONTS["mono"].width(label, 12, 1.4) + 24
-    c.chars["mono"].update(label)
-    c.add(
-        f'<g{c.cls("fade", 0.1)}><rect x="{x:.1f}" y="{y - 17:.1f}" width="{w:.1f}" height="24" rx="12" fill="none" stroke="{PINK}"/>'
-        f'<text x="{x + w / 2:.1f}" y="{y - 1:.1f}" font-size="12" letter-spacing="1.4" fill="{PINK}" text-anchor="middle" class="m">{label}</text></g>'
-    )
-
-
 def fit(font: Font, s: str, size: float, max_w: float, min_size: float = 12, spacing: float = 0.0) -> float:
     while size > min_size and font.width(s, size, spacing) > max_w:
         size -= 0.5
@@ -403,9 +386,9 @@ def tile_color(c: str | None) -> str:
     return c or BRAND
 
 
-def card_hero(role_line: str) -> Card:
+def card_hero() -> Card:
     W, H, PAD, BOX = 1000, 320, 72, 188
-    c = Card("hero", W, H, f"{NAME}. {role_line}", T_HERO)
+    c = Card("hero", W, H, f"{NAME}. {ROLE_LINE}", T_HERO)
     boxx, boxy = W - PAD - BOX, (H - BOX) / 2
     max_w = boxx - 40 - PAD
     disp, body, mono = FONTS["display"], FONTS["body"], FONTS["mono"]
@@ -451,8 +434,8 @@ def card_hero(role_line: str) -> Card:
         f'<animate attributeName="opacity" values="0;.8;0" dur="3.6s" begin="{c.at(1.8)}s" repeatCount="indefinite"/></rect>'
     )
 
-    tsize = fit(body, role_line, 24, max_w, 16)
-    c.add(c.text(PAD, 240, ellipsize(body, role_line, tsize, max_w), "body", tsize, TEXT, off=0.9))
+    tsize = fit(body, ROLE_LINE, 24, max_w, 14)
+    c.add(c.text(PAD, 240, ROLE_LINE, "body", tsize, TEXT, off=0.9))
 
     x = PAD
     for i, (_, label, _, col) in enumerate(TILES):
@@ -523,7 +506,6 @@ def card_stats(st: dict) -> Card:
     c.border()
 
     c.add(c.text(48, 62, "CONTRIBUTIONS", "mono", 15, BRAND, spacing=2.4, off=0.05))
-    sample_pill(c, 48 + mono.width("CONTRIBUTIONS", 15, 2.4) + 16, 62)
     c.add(c.text(640, 62, f"{fmt(st['total'])} in the last 12 months", "mono", 14, MUTED, anchor="end", off=0.1))
 
     x0, x1, top, base = 48, 640, 104, 326
@@ -545,8 +527,7 @@ def card_stats(st: dict) -> Card:
             f'<rect x="{cx - bw / 2:.1f}" y="{base - bh:.1f}" width="{bw}" height="{bh:.1f}" rx="4" fill="{fill}"'
             f'{dim}{c.cls("grow", off)}/>'
         )
-        if v:  # empty months stay a quiet stub, no row of zeros
-            c.add(c.text(cx, base - bh - 9, fmt(v), "mono", 13, TEXT if hot else MUTED, anchor="middle", off=off + 0.45))
+        c.add(c.text(cx, base - bh - 9, fmt(v), "mono", 13, TEXT if hot else MUTED, anchor="middle", off=off + 0.45))
         c.add(c.text(cx, 352, name, "mono", 14, MUTED, anchor="middle", off=0.2 + 0.03 * i))
 
     c.add(f'<line x1="668" x2="668" y1="96" y2="372" stroke="{LINE}"{c.cls("fade", 0.2)}/>')
@@ -586,8 +567,8 @@ def star_points(cx: float, cy: float, R: float = 8.0, r: float = 3.4) -> str:
     return " ".join(pts)
 
 
-def card_repo(i: int, repo: dict, t0: float, wide: bool = False) -> Card:
-    W, H = (1000, 156) if wide else (495, 185)  # a lone last repo spans the full width
+def card_repo(i: int, repo: dict, t0: float) -> Card:
+    W, H = 495, 185
     accent = [BRAND, PINK, VIOLET, BRAND][i % 4]
     name = repo["name"]
     c = Card(f"repo-{i + 1}", W, H, f"Repository {name}", t0)
@@ -595,22 +576,13 @@ def card_repo(i: int, repo: dict, t0: float, wide: bool = False) -> Card:
     c.frame(SURFACE, r=18, top_bar=accent)
     c.border(18)
     off = 0.0
-    fork_of = repo.get("fork_of")
-    title_w = W - 56 - (96 if fork_of else 0)
-    tsize = fit(disp, name, 24, title_w, 14)
-    c.add(c.text(28, 52, ellipsize(disp, name, tsize, title_w), "display", tsize, TEXT, off=off + 0.05))
-    if fork_of:
-        pw = mono.width("FORK", 12, 1.4) + 22
-        c.chars["mono"].update("FORK")
-        c.add(
-            f'<g{c.cls("fade", off + 0.1)}><rect x="{W - 28 - pw:.1f}" y="34" width="{pw:.1f}" height="24" rx="12" fill="none" stroke="{MUTED}"/>'
-            f'<text x="{W - 28 - pw / 2:.1f}" y="50" font-size="12" letter-spacing="1.4" fill="{MUTED}" text-anchor="middle" class="m">FORK</text></g>'
-        )
-    desc = (repo.get("description") or (f"Fork of {fork_of}." if fork_of else "No description yet.")).strip()
+    tsize = fit(disp, name, 24, W - 56, 14)
+    c.add(c.text(28, 52, ellipsize(disp, name, tsize, W - 56), "display", tsize, TEXT, off=off + 0.05))
+    desc = (repo.get("description") or "No description yet.").strip()
     for j, ln in enumerate(wrap(body, desc, 16, W - 56, 2)):
         c.add(c.text(28, 86 + 24 * j, ln, "body", 16, MUTED, off=off + 0.15 + 0.08 * j))
 
-    y = H - 27
+    y = 158
     x = 28
     lang = repo.get("language")
     row = []
@@ -642,7 +614,6 @@ def card_graph(days: list[dict], st: dict) -> Card:
     c.frame(GROUND)
     c.border()
     c.add(c.text(36, 46, "CONTRIBUTION GRAPH", "mono", 15, BRAND, spacing=2.4, off=0.05))
-    sample_pill(c, 36 + FONTS["mono"].width("CONTRIBUTION GRAPH", 15, 2.4) + 16, 46)
     c.add(c.text(964, 46, f"{fmt(st['total'])} contributions in the last year", "mono", 14, MUTED, anchor="end", off=0.1))
 
     first_wd = (days[0]["date"].weekday() + 1) % 7  # GitHub weeks start on Sunday
@@ -698,10 +669,10 @@ def card_graph(days: list[dict], st: dict) -> Card:
 # --------------------------------------------------------------------------
 # README block / preview
 # --------------------------------------------------------------------------
-def readme_block(prefix: str, repos: list[dict], st: dict, role: str) -> str:
+def readme_block(prefix: str, repos: list[dict], st: dict) -> str:
     lines = [
         '<p align="center">',
-        f'  <img src="{prefix}hero.svg" alt="{attr(NAME + ". " + role)}" width="100%">',
+        f'  <img src="{prefix}hero.svg" alt="{attr(NAME + ". " + ROLE_LINE)}" width="100%">',
         "</p>",
         '<p align="center">',
     ]
@@ -714,8 +685,7 @@ def readme_block(prefix: str, repos: list[dict], st: dict, role: str) -> str:
         lines.append('<p align="center">')
         for j in range(a, min(a + 2, len(repos))):
             r = repos[j]
-            w = "100%" if len(repos) % 2 == 1 and j == len(repos) - 1 else "49.5%"
-            lines.append(f'  <a href="{attr(r["url"])}"><img src="{prefix}repo-{j + 1}.svg" alt="{attr("Repository " + r["name"])}" width="{w}"></a>')
+            lines.append(f'  <a href="{attr(r["url"])}"><img src="{prefix}repo-{j + 1}.svg" alt="{attr("Repository " + r["name"])}" width="49.5%"></a>')
         lines.append("</p>")
     lines += [
         '<p align="center">',
@@ -759,20 +729,16 @@ def main() -> None:
     days = data["days"]
     st = compute_stats(days)
     repos = data.get("repos", [])[:MAX_REPOS]
-    global SAMPLE
-    SAMPLE = bool(data.get("sample"))
-    if SAMPLE:
-        print("warning: data/contributions.json is SAMPLE data (cards show a SAMPLE DATA badge). The Action replaces it.", file=sys.stderr)
-    bio = (data.get("bio") or "").strip()
-    role = bio if USE_GITHUB_BIO and bio else ROLE_LINE
+    if data.get("sample"):
+        print("warning: data/contributions.json is SAMPLE data. The daily Action replaces it.", file=sys.stderr)
 
     OUT_DIR.mkdir(exist_ok=True)
-    cards = [card_hero(role)]
+    cards = [card_hero()]
     for i, (label, name, url, col) in enumerate(TILES):
         cards.append(card_tile(i, label, name, url, col, T_TILES + 0.12 * i))
     cards.append(card_stats(st))
     for i, r in enumerate(repos):
-        cards.append(card_repo(i, r, T_REPOS + 0.14 * i, wide=len(repos) % 2 == 1 and i == len(repos) - 1))
+        cards.append(card_repo(i, r, T_REPOS + 0.14 * i))
     cards.append(card_graph(days, st))
 
     keep = set()
@@ -785,7 +751,7 @@ def main() -> None:
         if old.name not in keep:
             old.unlink()
 
-    block_for = lambda prefix: readme_block(prefix, repos, st, role)
+    block_for = lambda prefix: readme_block(prefix, repos, st)
     if STATIC:
         write_preview(block_for(""))
         print(f"STATIC=1: final-frame cards in {OUT_DIR.relative_to(ROOT)}/. Open preview.html to screenshot.")
