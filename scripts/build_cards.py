@@ -317,8 +317,11 @@ def load_data() -> dict:
         ({"date": dt.date.fromisoformat(d["date"]), "count": int(d["count"])} for d in data["days"]),
         key=lambda d: d["date"],
     )
-    if not data["days"]:
-        sys.exit("data/contributions.json has no days.")
+    if len(data["days"]) != 365:
+        sys.exit(f"Expected 365 daily contribution records, got {len(data['days'])}. Refusing to render stale or partial data.")
+    for previous, current in zip(data["days"], data["days"][1:]):
+        if current["date"] - previous["date"] != dt.timedelta(days=1):
+            sys.exit(f"Contribution dates are not consecutive: {previous['date']} then {current['date']}.")
     return data
 
 
