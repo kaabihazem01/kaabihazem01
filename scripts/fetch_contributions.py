@@ -51,7 +51,21 @@ def transform(resp: dict, login: str, first_day: dt.date, last_day: dt.date) -> 
         for d in week["contributionDays"]:
             date = dt.date.fromisoformat(d["date"])
             if first_day <= date <= last_day:
-                days[d["date"]] = d["contributionCount"]
+                count = d["contributionCount"]
+                if not isinstance(count, int) or count < 0:
+                    raise SystemExit(f"Invalid contribution count for {date}: {count!r}")
+                if d["date"] in days:
+                    raise SystemExit(f"Duplicate contribution date from GitHub: {d['date']}")
+                days[d["date"]] = count
+
+    expected = {
+        (first_day + dt.timedelta(days=i)).isoformat()
+        for i in range((last_day - first_day).days + 1)
+    }
+    if set(days) != expected:
+        missing = sorted(expected - set(days))
+        extra = sorted(set(days) - expected)
+        raise SystemExit(f"Incomplete contribution calendar; missing={missing[:3]}, extra={extra[:3]}")
     repos = []
     for n in user["pinnedItems"]["nodes"]:
         if not n:
