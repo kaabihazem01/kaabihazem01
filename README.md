@@ -11,6 +11,6 @@
   <img src="cards/stats.svg" alt="Contributions per month, with current streak, active days and busiest day" width="100%">
 </p>
 <p align="center">
-  <img src="cards/graph.svg" alt="Contribution graph, 36 contributions in the last year" width="100%">
+  <img src="cards/graph.svg" alt="Contribution graph, 37 contributions in the last year" width="100%">
 </p>
 <!--CARDS:END-->
