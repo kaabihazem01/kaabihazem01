@@ -11,14 +11,6 @@
   <img src="cards/stats.svg" alt="Contributions per month, with current streak, active days and busiest day" width="100%">
 </p>
 <p align="center">
-  <a href="https://github.com/kaabihazem01"><img src="cards/repo-1.svg" alt="Repository example-repo-one" width="49.5%"></a>
-  <a href="https://github.com/kaabihazem01"><img src="cards/repo-2.svg" alt="Repository example-repo-two" width="49.5%"></a>
-</p>
-<p align="center">
-  <a href="https://github.com/kaabihazem01"><img src="cards/repo-3.svg" alt="Repository example-repo-three" width="49.5%"></a>
-  <a href="https://github.com/kaabihazem01"><img src="cards/repo-4.svg" alt="Repository example-repo-four" width="49.5%"></a>
-</p>
-<p align="center">
-  <img src="cards/graph.svg" alt="Contribution graph, 910 contributions in the last year" width="100%">
+  <img src="cards/graph.svg" alt="Contribution graph, 24 contributions in the last year" width="100%">
 </p>
 <!--CARDS:END-->
